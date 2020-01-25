@@ -1,0 +1,38 @@
+The encrypted flag is in the file /etc/passwd
+
+when we see in the file we can see a strange line :
+
+level01@SnowCrash:~$ cat /etc/passwd
+             ...
+flag01:42hDRfypTqqnw:3001:3001::/home/flag/flag01:/bin/bash
+             ...
+
+and here we can see the an encrypted string : 42hDRfypTqqnw
+
+We can use John The Ripper to decode this string.
+To decrypt the string we save it in a file and use john the ripper to decode it.
+
+$> echo "42hDRfypTqqnw" > pass
+$> john pass --show
+
+and it will give us the following result:
+
+--------------------------------------------
+?:abcdefg
+
+1 password hash cracked, 0 left
+--------------------------------------------
+
+Thus revealing the decrypted flag : abcdefg
+
+Now that we habe the flag we can now log in to flag01 account and get the password for level02 account.
+
+## Use the decrypted password to login to flag01 account
+level01@SnowCrash:~$ su flag01
+Password: abcdefg
+
+## Get the password for level02
+flag01@SnowCrash:~$ getflag
+Check flag.Here is your token : f2av5il02puano7naaf6adaaf
+
+So the Password to connect to the account level02 is f2av5il02puano7naaf6adaaf

@@ -1,0 +1,117 @@
+Once we login as level06 we get 2 files in our new home directory :
+
+level06@SnowCrash:~$ ls -l
+total 12
+-rwsr-x---+ 1 flag06 level06 7503 Aug 30  2015 level06
+-rwxr-x---  1 flag06 level06  356 Mar  5  2016 level06.php
+
+one binary file called level06 and one php script called level06.php when we execute the binary file we get the following :
+
+level06@SnowCrash:~$ ./level06
+PHP Warning:  file_get_contents(): Filename cannot be empty in /home/user/level06/level06.php on line 4
+
+It looks like the binary file is executing.
+
+if we provide an argument to this binary it returns us the following :
+
+level06@SnowCrash:~$ echo "HEllo there" > /tmp/hello_there
+level06@SnowCrash:~$ ./level06 /tmp/hello_there
+HEllo there
+
+From this we can guess that the command line arguments passed to the binary file level06 is passed to the level06.php and the level06.php reads the content of the file and prints it to the standard output.
+
+In the level06.php file we have the following :
+
+------------------------------------------------------
+<?php
+function y($m)
+{
+    $m = preg_replace("/\./", " x ", $m);
+    $m = preg_replace("/@/", " y", $m);
+    return $m;
+}
+function x($y, $z)
+{
+    $a = file_get_contents($y);
+    $a = preg_replace("/(\[x (.*)\])/e", "y(\"\\2\")", $a);
+    $a = preg_replace("/\[/", "(", $a);
+    $a = preg_replace("/\]/", ")", $a);
+    return $a;
+}
+$r = x($argv[1], $argv[2]);
+print $r;
+?>
+-------------------------------------------------------
+
+What does the code means ?
+
+It seems the code contain 2 functions and it prints the result returned by the function x.
+
+The code first :
+
+- Calls the function x with 2 parameters, In our case the first parameter is the file name.
+- The function x calls file_get_contentswhich returns the content of the file as String
+- It then calls the preg_replacewhich uses RegEx to find and replace specific string patterns.
+  - In this case it searches for the pattern ([x ...])
+- Searches for the character [ and replaces with (
+- Searches for the character ] and replaces with )
+
+once all the placements are done we return the result which is then used to print to the standard output.
+
+While we are at it we can see that the function Y also dows basic RegEx replacements.
+
+What can we exploit ?
+
+There are some thing we must notice.
+
+1. The version of PHP in the ISO provided for Snow Crash project
+2. What happens when we copy the code to a machine with an up to date version of php and execute it.
+
+The version of php in the Virtual Machine (ISO) is 5.3.10.
+
+When we execute the code using an up to date version of PHP we get the folloing error:
+
+
+user@user ~/D/_/SnowCrash> php ./php_test.php  level06.c 
+Cannot load the ionCube PHP Loader - it was built with configuration API320180731,NTS, whereas running engine is API320190902,NTS
+PHP Warning:  preg_replace(): The /e modifier is no longer supported, use preg_replace_callback instead in /home/samad/Desktop/__TMP__/SnowCrash/php_test.php on line 11
+
+It says that the /e modifier is no longer supported. We can see the /e in the above code on line 11 :
+
+---------------------------------------------------------
+$a = preg_replace("/(\[x (.*)\])/e", "y(\"\\2\")", $a);
+----------------------------------------------------------
+
+In the official php dock they says
+
+"When preg_replace() is called with the /e modifier, the interpreter must parse the replacement string into PHP code once for every replacement made"
+
+So this means that whatever is parsed is transformed into php code.
+
+An other interesting thing is we can find in the official dock is the definition of \\2 in the second parameter. It says under the  replacement section :
+
+"The string or an array with strings to replace. If this parameter is a string and the pattern parameter is an array, all patterns will be replaced by that string. If both pattern and replacement parameters are arrays, each pattern will be replaced by the replacement counterpart. If there are fewer elements in the replacement array than in the pattern array, any extra patterns will be replaced by an empty string."
+
+So from this we understand that any pattern found by the first parameter, the send group of that pattenr will be passed to the function y
+
+
+So from the pattern from the file level06.php (line 11) we know we have to gave something that start with [x  and end with ] and whetever inside will be treated as php code.
+
+But this is not as simple as puting anything you want because if we put the followiing code :
+
+level06@SnowCrash:~$ echo '[x print "hello"]' > /tmp/flag06
+level06@SnowCrash:~$ ./level06 /tmp/flag06
+print "hello"
+
+
+It seems to treat our command as a string. After a little bit of research and trial, i have found that the complex syntax works.
+
+
+We can use the execution operators( ` ) to execute shell commands. So to execute the getflag program we can use the following command :
+
+level06@SnowCrash:~$ echo '[x ${`getflag`} ]' > /tmp/getflag06
+level06@SnowCrash:~$ ./level06 /tmp/getflag06
+PHP Notice:  Undefined variable: Check flag.Here is your token : wiok45aaoguiboiki2tuin6ub
+ in /home/user/level06/level06.php(4) : regexp code on line 1
+ 
+ And this reveals the flag!

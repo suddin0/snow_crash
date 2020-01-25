@@ -1,0 +1,149 @@
+when we login as level08 user we are given 2 files :
+
+level09@SnowCrash:~$ ls -l
+total 12
+-rwsr-sr-x 1 flag09 level09 7640 Mar  5  2016 level09
+----r--r-- 1 flag09 level09   26 Mar  5  2016 token
+
+Here we can read the file token and we can see :
+
+level09@SnowCrash:~$ cat token 
+f4kmm6p|=�p�n��DB�Du{��
+
+We alse have a binary file called level09 when we execute it we get : 
+
+level09@SnowCrash:~$ ./level09 
+You need to provied only one arg.
+
+It expect an argument, so when we provide an argument where is what we get :
+
+level09@SnowCrash:~$ ./level09 token 
+tpmhr
+level09@SnowCrash:~$ ./level09 ""
+
+level09@SnowCrash:~$ ./level09 "123456789"
+13579;=?A
+level09@SnowCrash:~$ ./level09 "abcdefgh"
+acegikmo
+level09@SnowCrash:~$ ./level09 "1234567890abcdefghijklmnopqrstuvwxyz"
+13579;=?A9kmoqsuwy{}���������������
+
+when we provided the argument 123456789 we got 13579;=?A and when we provided abcdefgh we got acegikmo Just by looking at it we can see that each character is the result of the character code + the position.
+
+So for abcdefgh we will have :
+
+-----------------------------------------------------------------
+Position  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+          ---------------------------------
+Char      | a | b | c | d | e | f | g | h |
+          ---------------------------------
+Char code |97 |98 |99 |100|101|102|103|104|
+
+    Befor   |  After
+---------------------
+( 97) a + 0 : a ( 97)
+( 98) b + 1 : c ( 99)
+( 99) c + 2 : e (101)
+(100) d + 3 : g (103)
+(101) e + 4 : i (105)
+(102) f + 5 : k (107)
+(103) g + 6 : m (109)
+(104) h + 7 : o (111)
+---------------------------------------------------------------------
+
+
+From here we can guess that it is possible that the data in the file token might have been encoded using this technique.
+
+To decode the data all we have to do is just remove the value of position from the value in question.
+
+So if we have have the following Ascii code (in the following order) 97 99 101 (which is a c e) all we have to do to get it's original valie is 97 - 0 99 - 1 101 - 2 and we will get the decoded value (which is a b c)
+
+Here is a simple program that can decode any value encoded using the above technique :
+
+---------------------------------------------------
+int main(int argc, char **argv)
+{
+	char *arg;
+	int i = 0;
+
+	if(argc != 2)
+	{
+		fprintf(stderr, "[-] Only one argument is accepted\n");
+		return 1;
+	}
+
+	arg = argv[1];
+	while(*arg)
+	{
+		printf("%c", *arg - i);
+		i++;
+		arg++;
+	}
+	printf("\n");
+	return 0;
+}
+-----------------------------------------------------
+
+If we can use the above progran as following  :
+
+level09@SnowCrash:~$ ls
+level09  token
+level09@SnowCrash:~$ cat token | xargs /tmp/decode
+f3iji1ju5yuevaus41q1afiuq
+
+We have to log into flag09 accountn to get the password for the next level
+
+So the Password to connect to the account level10 is s5cAJpM8ev6XHw998pRWG728z
+
+
+# Alternative method
+
+If you do decide to decompile the level09 binary here is what you will get.
+(I have cleaned the data to make it more readable)
+
+---------------------------------------------------------------------
+	char * __arg = argv[1];
+	char * v9 = (char *)-1;
+	while (true)
+	{
+		uint32_t i = (int32_t)v9 + 1; // at first it's 0
+		int32_t arg = *__arg;
+		int32_t dec = -1;
+		int32_t v13;
+		/* if argv[1] is : [ABCD] */
+		while (true)
+		{
+			negative_lenth = 0;
+			/* We are counting the number of characters */
+			if (dec != 0)
+			{
+				/* If we have reached the end of string */
+				if (*arg == 0)
+				{
+					negative_lenth = dec - 1;
+					break;
+				}
+				arg++;
+				dec--;
+				continue;
+			}
+			/* If the argument string is empty print '\n' */
+			if (i >= -2 - negative_lenth)
+			{
+				int32_t fputc_rc = fputc('\n', stdout);
+				if (__readgsdword(20) == v1)
+					return (fputc_rc);
+				return (int32_t)&v2;
+			}
+lab_0x8048975:
+			/* Here is where the encoding is happening */
+			putchar(__arg[i] + i);
+			v9 = (char *)i;
+			break;
+		}
+
+		if (i < -2 - negative_lenth)
+			goto lab_0x8048975;
+		fputc('\n', stdout);
+	}
+-----------------------------------------------------------------------

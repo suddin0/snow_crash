@@ -1,0 +1,255 @@
+When we login as level14 we do not get any file at all. After using the techniques used in the previous exercises, no results ware found. 
+
+
+It's time to get the flag from the getflag binary directly.
+
+When we decompile the binary we get the following code:
+
+-----------------------------------------------------------------------
+
+undefined4 main(void)
+
+{
+  bool bVar1;
+  FILE *__stream;
+  long lVar2;
+  undefined4 uVar3;
+  char *__s;
+  int iVar4;
+  __uid_t _Var5;
+  int iVar6;
+  int in_GS_OFFSET;
+  undefined local_114 [256];
+  int local_14;
+  
+  local_14 = *(int *)(in_GS_OFFSET + 0x14);
+  bVar1 = false;
+  lVar2 = ptrace(PTRACE_TRACEME,0,1,0);
+  if (lVar2 < 0) {
+    puts("You should not reverse this");
+    uVar3 = 1;
+  }
+  else {
+    __s = getenv("LD_PRELOAD");
+    if (__s == (char *)0x0) {
+      iVar4 = open("/etc/ld.so.preload",0);
+      if (iVar4 < 1) {
+        iVar4 = syscall_open("/proc/self/maps",0);
+        if (iVar4 == -1) {
+          fwrite("/proc/self/maps is unaccessible, probably a LD_PRELOAD attempt exit..\n",1,0x46,
+                 stderr);
+          uVar3 = 1;
+        }
+        else {
+          do {
+            do {
+              while( true ) {
+                iVar6 = syscall_gets(local_114,0x100,iVar4);
+                if (iVar6 == 0) goto LAB_08048ead;
+                iVar6 = isLib(local_114,&DAT_08049063);
+                if (iVar6 == 0) break;
+                bVar1 = true;
+              }
+            } while (!bVar1);
+            iVar6 = isLib(local_114,&DAT_08049068);
+            if (iVar6 != 0) {
+              fwrite("Check flag.Here is your token : ",1,0x20,stdout);
+              _Var5 = getuid();
+              __stream = stdout;
+              if (_Var5 == 0xbbe) {
+                __s = (char *)ft_des("H8B8h_20B4J43><8>\\ED<;j@3");
+                fputs(__s,__stream);
+              }
+              else {
+                if (_Var5 < 0xbbf) {
+                  if (_Var5 == 0xbba) {
+                    __s = (char *)ft_des("<>B16\\AD<C6,G_<1>^7ci>l4B");
+                    fputs(__s,__stream);
+                  }
+                  else {
+                    if (_Var5 < 0xbbb) {
+                      if (_Var5 == 3000) {
+                        __s = (char *)ft_des("I`fA>_88eEd:=`85h0D8HE>,D");
+                        fputs(__s,__stream);
+                      }
+                      else {
+                        if (_Var5 < 0xbb9) {
+                          if (_Var5 == 0) {
+                            fwrite("You are root are you that dumb ?\n",1,0x21,stdout);
+                          }
+                          else {
+LAB_08048e06:
+                            fwrite("\nNope there is no token here for you sorry. Try again :)",1,
+                                   0x38,stdout);
+                          }
+                        }
+                        else {
+                          __s = (char *)ft_des("7`4Ci4=^d=J,?>i;6,7d416,7");
+                          fputs(__s,__stream);
+                        }
+                      }
+                    }
+                    else {
+                      if (_Var5 == 0xbbc) {
+                        __s = (char *)ft_des("?4d@:,C>8C60G>8:h:Gb4?l,A");
+                        fputs(__s,__stream);
+                      }
+                      else {
+                        if (_Var5 < 0xbbd) {
+                          __s = (char *)ft_des("B8b:6,3fj7:,;bh>D@>8i:6@D");
+                          fputs(__s,__stream);
+                        }
+                        else {
+                          __s = (char *)ft_des("G8H.6,=4k5J0<cd/D@>>B:>:4");
+                          fputs(__s,__stream);
+                        }
+                      }
+                    }
+                  }
+                }
+                else {
+                  if (_Var5 == 0xbc2) {
+                    __s = (char *)ft_des("74H9D^3ed7k05445J0E4e;Da4");
+                    fputs(__s,__stream);
+                  }
+                  else {
+                    if (_Var5 < 0xbc3) {
+                      if (_Var5 == 0xbc0) {
+                        __s = (char *)ft_des("bci`mC{)jxkn<\"uD~6%g7FK`7");
+                        fputs(__s,__stream);
+                      }
+                      else {
+                        if (_Var5 < 0xbc1) {
+                          __s = (char *)ft_des("78H:J4<4<9i_I4k0J^5>B1j`9");
+                          fputs(__s,__stream);
+                        }
+                        else {
+                          __s = (char *)ft_des("Dc6m~;}f8Cj#xFkel;#&ycfbK");
+                          fputs(__s,__stream);
+                        }
+                      }
+                    }
+                    else {
+                      if (_Var5 == 0xbc4) {
+                        __s = (char *)ft_des("8_Dw\"4#?+3i]q&;p6 gtw88EC");
+                        fputs(__s,__stream);
+                      }
+                      else {
+                        if (_Var5 < 0xbc4) {
+                          __s = (char *)ft_des("70hCi,E44Df[A4B/J@3f<=:`D");
+                          fputs(__s,__stream);
+                        }
+                        else {
+                          if (_Var5 == 0xbc5) {
+                            __s = (char *)ft_des("boe]!ai0FB@.:|L6l@A?>qJ}I");
+                            fputs(__s,__stream);
+                          }
+                          else {
+                            if (_Var5 != 0xbc6) goto LAB_08048e06;
+                            __s = (char *)ft_des("g <t61:|4_|!@IF.-62FH&G~DCK/Ekrvvdwz?v|");
+                            fputs(__s,__stream);
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              fputc(10,stdout);
+              goto LAB_08048ead;
+            }
+            iVar6 = afterSubstr(local_114,"00000000 00:00 0");
+          } while (iVar6 != 0);
+          fwrite("LD_PRELOAD detected through memory maps exit ..\n",1,0x30,stderr);
+LAB_08048ead:
+          uVar3 = 0;
+        }
+      }
+      else {
+        fwrite("Injection Linked lib detected exit..\n",1,0x25,stderr);
+        uVar3 = 1;
+      }
+    }
+    else {
+      fwrite("Injection Linked lib detected exit..\n",1,0x25,stderr);
+      uVar3 = 1;
+    }
+  }
+  if (local_14 == *(int *)(in_GS_OFFSET + 0x14)) {
+    return uVar3;
+  }
+                    /* WARNING: Subroutine does not return */
+  __stack_chk_fail();
+}
+---------------------------------------------------------------------------
+
+And in the decompiled code we can clearly see that just like the last exercise (Level13) we call a decoding function called ft_des and we call it depending on the UID of the user.
+
+And just like the last exercise (Level13) we can try the same techniques to get the flag. Lets 
+
+
+- Disassemble the main function 
+  - Get the addes of where the last call of ft_des is (assuming the calls are in order of exercices)
+- Set a break point to the main function (at the very start)
+- Jump to the desired address.
+
+In the Disassembled code (in the other tab next to getflag.c code) we can see that the last time ft_des is called on address 0x08048df3 (line 259)so we shoulf jump to the address that is a little bit above, to 0x08048de5 (line 256) we jump there se the addresse of the string (that will be decoded) are set properly to the proper registers.
+
+So here is how we will get the flag
+
+Open GDB with the getflag function
+
+level14@SnowCrash:~$ gdb getflag -q
+
+Set the break point to main and we run the program
+
+
+Breakpoint 1 at 0x804894a
+(gdb) run
+Starting program: /bin/getflag
+
+Breakpoint 1, 0x0804894a in main ()
+
+
+
+
+We jump to address 0x08048de5
+
+
+(gdb) jump *0x08048de5
+Continuing at 0x8048de5.
+7QiHafiNa3HVozsaXkawuYrTstxbpABHD8CPnHJ
+*** stack smashing detected ***: /bin/getflag terminated
+======= Backtrace: =========
+/lib/i386-linux-gnu/libc.so.6(__fortify_fail+0x45)[0xb7f2fd95]
+/lib/i386-linux-gnu/libc.so.6(+0x103d4a)[0xb7f2fd4a]
+/bin/getflag[0x8048ec7]
+/lib/i386-linux-gnu/libc.so.6(__libc_start_main+0xf3)[0xb7e454d3]
+/bin/getflag[0x8048571]
+======= Memory map: ========
+08048000-0804a000 r-xp 00000000 07:00 12700      /bin/getflag
+0804a000-0804b000 r--p 00001000 07:00 12700      /bin/getflag
+0804b000-0804c000 rw-p 00002000 07:00 12700      /bin/getflag
+0804c000-0806d000 rw-p 00000000 00:00 0          [heap]
+b7e07000-b7e23000 r-xp 00000000 07:00 14117      /lib/i386-linux-gnu/libgcc_s.so.1
+b7e23000-b7e24000 r--p 0001b000 07:00 14117      /lib/i386-linux-gnu/libgcc_s.so.1
+b7e24000-b7e25000 rw-p 0001c000 07:00 14117      /lib/i386-linux-gnu/libgcc_s.so.1
+b7e2b000-b7e2c000 rw-p 00000000 00:00 0 
+b7e2c000-b7fcf000 r-xp 00000000 07:00 14123      /lib/i386-linux-gnu/libc-2.15.so
+b7fcf000-b7fd1000 r--p 001a3000 07:00 14123      /lib/i386-linux-gnu/libc-2.15.so
+b7fd1000-b7fd2000 rw-p 001a5000 07:00 14123      /lib/i386-linux-gnu/libc-2.15.so
+b7fd2000-b7fd5000 rw-p 00000000 00:00 0 
+b7fd9000-b7fdd000 rw-p 00000000 00:00 0 
+b7fdd000-b7fde000 r-xp 00000000 00:00 0          [vdso]
+b7fde000-b7ffe000 r-xp 00000000 07:00 14081      /lib/i386-linux-gnu/ld-2.15.so
+b7ffe000-b7fff000 r--p 0001f000 07:00 14081      /lib/i386-linux-gnu/ld-2.15.so
+b7fff000-b8000000 rw-p 00020000 07:00 14081      /lib/i386-linux-gnu/ld-2.15.so
+bffdf000-c0000000 rw-p 00000000 00:00 0          [stack]
+
+Program received signal SIGABRT, Aborted.
+0xb7fdd428 in __kernel_vsyscall ()
+
+And it shows us the flag.
+
+
+The flag to login to flag14 account : 7QiHafiNa3HVozsaXkawuYrTstxbpABHD8CPnHJ

@@ -1,0 +1,290 @@
+When we login as level13 we get the following files in our home directory
+
+level13@SnowCrash:~$ ls -l
+total 8
+-rwsr-sr-x 1 flag13 level13 7303 Aug 30  2015 level13
+
+And when we execute the executable level13 we get :
+
+level13@SnowCrash:~$ ./level13 
+UID 2013 started us but we we expect 4242
+
+The executable do not take any arguments.
+
+When we disassemble the file we get the following code :
+
+(the name of the file that contain the below code is decrypt.c)
+--------------------------------------------------------
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+char * ft_des(char *param_1)
+{
+	char *param_copy;
+	uint param_len;
+	char *param_copy_2;
+	uint param_index;
+	int num_index;
+	int i;
+	int j;
+	char num_str[] = "0123456";
+	char p_char;
+
+	param_copy		= strdup(param_1);
+	num_index 		= 0;
+	param_index 	= 0;
+	param_copy_2 	= param_copy;
+	param_len 		= 0xffffffff;
+	
+	/* calculate the length of parameter : strlen(param_1) */
+	do	{
+		if (param_len == 0)
+			break;
+		param_len = param_len - 1;
+		p_char = *param_copy_2;
+		param_copy_2 = param_copy_2 + 1;
+	} while(p_char);
+	
+	do {
+		/* If param_index == len */
+		if (~param_len - 1 <= param_index)
+			return (param_copy);
+
+		if (num_index == 6)
+			num_index = 0;
+
+		/* if param_index is a XX number then it's true */
+		if ((param_index & 1) == 0)
+		{
+			if ((param_index & 1) == 0) 
+			{
+				i = 0;
+				while (i < num_str[num_index])
+				{
+					param_copy[param_index] = param_copy[param_index] + -1;
+					if (param_copy[param_index] == 0x1f)
+						param_copy[param_index] = '~';
+					i = i + 1;
+				}
+			}
+		}
+		else
+		{
+			j = 0;
+			while (j < num_str[num_index])
+			{
+				param_copy[param_index] = param_copy[param_index] + 1;
+				if (param_copy[param_index] == 0x7f) // 0x7f is the ascii code for Delete
+					param_copy[param_index] = ' ';
+				j = j + 1;
+			}
+		}
+		param_index = param_index + 1;
+		num_index = num_index + 1;
+	} while( true );
+}
+
+void main(void)
+
+{
+  __uid_t _Var1;
+  undefined4 uVar2;
+  
+  _Var1 = getuid();
+  if (_Var1 != 0x1092) {
+    _Var1 = getuid();
+    printf("UID %d started us but we we expect %d\n",_Var1,0x1092);
+                    /* WARNING: Subroutine does not return */
+    exit(1);
+  }
+  uVar2 = ft_des("boe]!ai0FB@.:|L6l@A?>qJ}I");
+  printf("your token is %s\n",uVar2);
+  return;
+}
+---------------------------------------------------------------------------------------
+
+
+It seems that the program checks for our UID and if the User ID is not correct it quits the program saying an error message and if the UID is correct then it calls the function ft_des which does some encryption to our given string that we passed as the function parameter and it return us the new encryptes string.
+
+I said it ecrypt the string because the function is called ft_des and DES is an well known encryption algorithm. But in our case it will rather decrypt because the string boe]!ai0FB@.:|L6l@A?>qJ}I is not the correct fag so it had to be decrypted before we can use it.
+
+The function ft_des is a rather simple function that
+
+- takes an argument
+- Create a duplicate of the argument
+- calculate the length of the string
+- Loop until reached the end of the string
+- while it is looping for each character it modifies it using simple technics.
+
+To solve this exercice we can simply copy the ft_des and create a C program where we call the ft_des function from our main and print the result.
+
+----------------------------------------------------------------
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+char * ft_des(char *param_1)
+{
+	char *param_copy;
+	uint param_len;
+	char *param_copy_2;
+	uint param_index;
+	int num_index;
+	int i;
+	int j;
+	char num_str[] = "0123456";
+	char p_char;
+
+	param_copy = strdup(param_1);
+	num_index = 0;
+	param_index = 0;
+
+	param_copy_2 = param_copy;
+	param_len = 0xffffffff;
+	/* calculate the length of parameter : strlen(param_1) */
+	do	{
+		if (param_len == 0)
+			break;
+		param_len = param_len - 1;
+		p_char = *param_copy_2;
+		param_copy_2 = param_copy_2 + 1;
+	} while(p_char);
+	do {
+		/* If param_index == len */
+		if (~param_len - 1 <= param_index)
+			return (param_copy);
+
+		if (num_index == 6)
+			num_index = 0;
+
+		/* if param_index is a XX number then it's true */
+		if ((param_index & 1) == 0)
+		{
+			if ((param_index & 1) == 0) 
+			{
+				i = 0;
+				while (i < num_str[num_index])
+				{
+					param_copy[param_index] = param_copy[param_index] + -1;
+					if (param_copy[param_index] == 0x1f)
+						param_copy[param_index] = '~';
+					i = i + 1;
+				}
+			}
+		}
+		else
+		{
+			j = 0;
+			while (j < num_str[num_index])
+			{
+				param_copy[param_index] = param_copy[param_index] + 1;
+				if (param_copy[param_index] == 0x7f) // 0x7f is the ascii code for Delete
+					param_copy[param_index] = ' ';
+				j = j + 1;
+			}
+		}
+		param_index = param_index + 1;
+		num_index = num_index + 1;
+	} while( true );
+}
+
+int main(int argc, char const *argv[])
+{
+	printf("Flag : %s\n", ft_des("boe]!ai0FB@.:|L6l@A?>qJ}I"));
+	return 0;
+}
+-------------------------------------------------------------------------
+
+
+And when we run the program we get our flag
+
+SnowCrash> gcc decrypt.c -o decrypt
+SnowCrash> ./decrypt        
+Flag : 2A31L79asukciNyi8uppkEuSx
+
+
+
+
+
+
+# Alternative way to solve the exercice (using a debugger)
+
+
+
+An other way (and faster) to solve it is to
+
+- open the binary in GDB 
+- Disassemble the main function and get the location just after the verification of UID
+- Create a break point before the verification of UID
+- Once breakpoint reached jump to the location where the verification ends so the part - where we ca call the ft_des function get executed
+- Get the password
+
+Start GDB with our executable.
+
+level13@SnowCrash:~$ gdb -q ./level13 
+Reading symbols from /home/user/level13/level13...(no debugging symbols found)...done.
+(gdb)
+
+
+Disassemble the main function
+
+(gdb) disassemble main
+Dump of assembler code for function main:
+   0x0804858c <+0>:     push   %ebp
+   0x0804858d <+1>:     mov    %esp,%ebp
+   0x0804858f <+3>:     and    $0xfffffff0,%esp
+   0x08048592 <+6>:     sub    $0x10,%esp
+   0x08048595 <+9>:     call   0x8048380 <getuid@plt>
+   0x0804859a <+14>:    cmp    $0x1092,%eax
+   0x0804859f <+19>:    je     0x80485cb <main+63>
+   0x080485a1 <+21>:    call   0x8048380 <getuid@plt>
+   0x080485a6 <+26>:    mov    $0x80486c8,%edx
+   0x080485ab <+31>:    movl   $0x1092,0x8(%esp)
+   0x080485b3 <+39>:    mov    %eax,0x4(%esp)
+   0x080485b7 <+43>:    mov    %edx,(%esp)
+   0x080485ba <+46>:    call   0x8048360 <printf@plt>
+   0x080485bf <+51>:    movl   $0x1,(%esp)
+   0x080485c6 <+58>:    call   0x80483a0 <exit@plt>
+   0x080485cb <+63>:    movl   $0x80486ef,(%esp)
+   0x080485d2 <+70>:    call   0x8048474 <ft_des>
+   0x080485d7 <+75>:    mov    $0x8048709,%edx
+   0x080485dc <+80>:    mov    %eax,0x4(%esp)
+   0x080485e0 <+84>:    mov    %edx,(%esp)
+   0x080485e3 <+87>:    call   0x8048360 <printf@plt>
+   0x080485e8 <+92>:    leave  
+   0x080485e9 <+93>:    ret    
+End of assembler dump.
+
+
+It seems that line 18 is the start of the other part of the code that we want to jump to and the address is 0x080485cb
+
+Set the break point befor the call to getuid (line 6) and the address is 0x0804859f
+
+(gdb) break *0x0804859f
+Breakpoint 1 at 0x804859f
+
+The part of the program where we want to jump to is at the address 0x080485cb so we execute the program and get to the break point.
+
+(gdb) run
+Starting program: /home/user/level13/level13 
+
+Breakpoint 1, 0x0804859f in main ()
+
+
+We set the address to jump to 0x080485cb 
+
+(gdb) jump *0x080485cb
+Continuing at 0x80485cb.
+your token is 2A31L79asukciNyi8uppkEuSx
+[Inferior 1 (process 3741) exited with code 050]
+
+And it reveals the flag...
+
+So the Password to connect to the account level14 is 2A31L79asukciNyi8uppkEuSx

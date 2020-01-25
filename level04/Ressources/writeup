@@ -1,0 +1,61 @@
+When we login as level04 user we get a file named level04.pl which is a perl script.
+
+when we execute the script we get the followin script esult :
+
+level04@SnowCrash:~$ ./level04.pl 
+Content-type: text/html
+
+The result didn't tell us much but when we see the source code of the script we can see :
+
+---------------------------------------------
+#!/usr/bin/perl
+# localhost:4747
+use CGI qw{param};
+print "Content-type: text/html\n\n";
+sub x {
+  $y = $_[0];
+  print `echo $y 2>&1`;
+}
+x(param("x"));
+-----------------------------------------------
+
+So in the comment we see localhost:4747 which indicates that the script is running on port 4747 on our localhost (current OS)
+
+we can verify it using the command curl as follows:
+
+curl localhost:7474
+
+And this command return nothing.
+
+In the source code we see that the script uses CGI (Common Gateway Interface) This is a perl module to do web related stuff.
+
+According to this page the qw(...) (quote word) function takes some arguments separeted by spaces and it returns a list of quoted (') strings of the given paramenters. So in other word it is as if we are saying import param from CGI so that we can use the function param.
+
+.
+And from this code we understand that param just get the value of the given key so let's say in our web page we are authenticating using an user name and a password, to get the value of user name and password we would call param ass following
+
+$user_name = param("userName")
+$password  = param("password")
+
+And in perl the keyword sub means subroutin which is another term for function So bassically in this code
+
+we are importing param from CGI
+then sending our http header 
+We call the function x and we give it the value of x which is
+    expected to be given in the url as url parameter, to the x
+    function as function parameter.
+
+In the function we take the first parameter $_[0] and save it to the variable $y and then we send the result of the following shell command echo $y 2>&1 so here echo uses whatever we send as parameter x in ourl and it sends us the resul back.
+
+We can exploit it by passing the variable $y a shell command.
+
+So what we can do to exploit this is to make the script call getflag to get the flag:
+
+## Don't forget the ' (single quotes)
+curl: (3) Illegal characters found in URL
+level04@SnowCrash:~$ curl 'localhost:4747/?x=$(getflag)'
+Check flag.Here is your token : ne2searoevaevoem4ov4ar8ap
+
+
+in our command we passed the followin parameter ?x=$(getflag) to the server and the server extracted the value of x which is $(getflag)' and this is just executing the command getflag and returning the result (stdout) to echo and then we get the flag.
+

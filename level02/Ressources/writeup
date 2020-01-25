@@ -1,0 +1,67 @@
+Once we log into the level02 account we find a .pcap file named level02.pcap.
+
+In the ISO provided for Snow Crash there aren't any appropriate tool to open and analyse the level02.pcap file so to be able to analyse the file we transfar the file to our local computer (or any computer where we can analyse it).
+
+Once we have obtain the file we can open it in wireshark so we can se what's happening.
+
+Once we open the file in wireshark after some looking arround we can see a packet containing the word Password
+
+
+To know more what's going on with this packet we can follow the TCP stream of this packet
+
+---------------------------------------------------------------------------
+..%..%..&..... ..#..'..$..&..... ..#..'..$.. .....#.....'........... .38400,38400....#.SodaCan:0....'..DISPLAY.SodaCan:0......xterm.........."........!........"..".....b........b....	B.
+..............................1.......!.."......"......!..........."........"..".............	..
+.....................
+Linux 2.6.38-8-generic-pae (::ffff:10.1.1.2) (pts/10)
+
+..wwwbugs login: l.le.ev.ve.el.lX.X
+..
+Password: ft_wandr...NDRel.L0L
+.
+..
+Login incorrect
+wwwbugs login: 
+--------------------------------------------------------------------------
+
+So the password is revealed here as ft_wandr...NDRel.L0L but the "." (dots) are representation of non printable data so if we change the data representation from ASCII to C Arrays we can see the ascii code as follows :
+
+---------------------------------------------------------------------------
+char peer0_13[] = { /* Packet 45 */ 0x66 }; /* f */
+char peer0_14[] = { /* Packet 47 */ 0x74 }; /* t */
+char peer0_15[] = { /* Packet 49 */ 0x5f }; /* _ */
+char peer0_16[] = { /* Packet 51 */ 0x77 }; /* w */
+char peer0_17[] = { /* Packet 53 */ 0x61 }; /* a */
+char peer0_18[] = { /* Packet 55 */ 0x6e }; /* n */
+char peer0_19[] = { /* Packet 57 */ 0x64 }; /* d */
+char peer0_20[] = { /* Packet 59 */ 0x72 }; /* r */
+char peer0_21[] = { /* Packet 61 */ 0x7f }; /* Delete */
+char peer0_22[] = { /* Packet 63 */ 0x7f }; /* Delete */
+char peer0_23[] = { /* Packet 65 */ 0x7f }; /* Delete */
+char peer0_24[] = { /* Packet 67 */ 0x4e }; /* N */
+char peer0_25[] = { /* Packet 69 */ 0x44 }; /* D */
+char peer0_26[] = { /* Packet 71 */ 0x52 }; /* R */
+char peer0_27[] = { /* Packet 73 */ 0x65 }; /* e */
+char peer0_28[] = { /* Packet 75 */ 0x6c }; /* l */
+char peer0_29[] = { /* Packet 77 */ 0x7f }; /* Delete */
+char peer0_30[] = { /* Packet 79 */ 0x4c }; /* L */
+char peer0_31[] = { /* Packet 81 */ 0x30 }; /* 0 */
+char peer0_32[] = { /* Packet 83 */ 0x4c }; /* L */
+char peer0_33[] = { /* Packet 85 */ 0x0d }; /* Carriage Return */
+--------------------------------------------------------------------------
+
+So in this form we can better see what happened. We can see that the user first wrote f t _ w a n d r and then pressed Delete 3 times thus erased the last three character so we have only ft_wa and the user types N D R e l and once again the user Delets the last character (l) and then types L 0 L. So by this we now the password is ft_waNDReL0L.
+
+So now we know the password to log into flag02 account and to do this we do the following command :
+
+
+level02@SnowCrash:~$ su flag02
+Password: ft_waNDReL0L
+
+
+and once we are logged in we get the password for the level03 account using the usual command :
+
+level02@SnowCrash:~$ getflag
+Check flag.Here is your token : kooda2puivaav1idi4f57q8iq
+
+So the Password to connect to the account level03 is : kooda2puivaav1idi4f57q8iq
